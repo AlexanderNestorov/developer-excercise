@@ -1,4 +1,4 @@
-package com.example.cloudruid.model.request;
+package com.example.cloudruid.model.request.product;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;

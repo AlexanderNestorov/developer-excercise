@@ -1,7 +1,7 @@
 package com.example.cloudruid.controller;
 
 import com.example.cloudruid.model.entity.Product;
-import com.example.cloudruid.model.request.ProductAddRequest;
+import com.example.cloudruid.model.request.product.ProductAddRequest;
 import com.example.cloudruid.model.response.MessageResponse;
 import com.example.cloudruid.model.service.product.ProductAddServiceModel;
 import com.example.cloudruid.service.product.ProductService;
