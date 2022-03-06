@@ -24,27 +24,34 @@ public class DealServiceImpl implements DealService{
 
     @Override
     public void addDeal(DealAddServiceModel dealAddServiceModel) {
-        createDeal(dealAddServiceModel.getName(), defineProducts(dealAddServiceModel.getProducts()));
+        createDeal(dealAddServiceModel.getName(),
+                defineProducts(dealAddServiceModel.getProducts()));
     }
 
     @Override
     public List<Deal> getAllDeals() {
-        return dealRepository.findAll();
+        return this.dealRepository.findAll();
     }
 
     @Override
-    public Deal findDealById(Long id) {
-        return dealRepository.findDealById(id)
-                .orElseThrow(() -> new ItemNotFoundException("Deal not found!"));
+    public Deal findDealByName(String name) {
+        return this.dealRepository.findDealByName(name)
+                .orElseThrow(() -> new ItemNotFoundException("Deal with name " + name + " not found!"));
     }
+
+//    @Override
+//    public Deal findDealById(Long id) {
+//        return dealRepository.findDealById(id)
+//                .orElseThrow(() -> new ItemNotFoundException("Deal not found!"));
+//    }
 
     @Override
     public void initializeDeals() {
-        if(dealRepository.count() == 0) {
-            createDeal("Buy 3 Items, Get the Third One Free",
+        if(this.dealRepository.count() == 0) {
+            createDeal("3for2",
                     defineProducts(List.of("Apple", "Banana","Potato")));
 
-            createDeal("Buy 2 Items, Get the Second One For Half Price",
+            createDeal("1AndHalf",
                     defineProducts(List.of("Potato")));
         }
     }
@@ -62,7 +69,7 @@ public class DealServiceImpl implements DealService{
         List<Product> productEntities = new ArrayList<>();
         for (String productName : products) {
             Product product = this.productRepository.findProductByName(productName)
-                    .orElseThrow(() -> new ItemNotFoundException("Product not found!"));
+                    .orElseThrow(() -> new ItemNotFoundException("Product with name " + productName + " not found!"));
             productEntities.add(product);
         }
         return productEntities;

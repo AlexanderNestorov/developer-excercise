@@ -1,20 +1,19 @@
-package com.example.cloudruid.model.request.order;
+package com.example.cloudruid.model.service.order;
 
-import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 
-public class OrderAddRequest {
+public class OrderAddServiceModel {
 
-    @Valid
     private List<String> products;
-    @Valid
+
     private List<String> discounts;
 
     public List<String> getProducts() {
         return products;
     }
 
-    public OrderAddRequest setProducts(List<String> products) {
+    public OrderAddServiceModel setProducts(List<String> products) {
         this.products = products;
         return this;
     }
@@ -23,7 +22,7 @@ public class OrderAddRequest {
         return discounts;
     }
 
-    public OrderAddRequest setDiscounts(List<String> discounts) {
+    public OrderAddServiceModel setDiscounts(List<String> discounts) {
         this.discounts = discounts;
         return this;
     }

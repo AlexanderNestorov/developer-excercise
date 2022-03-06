@@ -11,7 +11,7 @@ public interface DealService {
 
     List<Deal> getAllDeals();
 
-    Deal findDealById(Long id);
+    Deal findDealByName(String name);
 
 //    Deal updateDeal();
 

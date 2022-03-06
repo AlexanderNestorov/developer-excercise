@@ -12,17 +12,17 @@ public class Order extends BaseEntity{
     @JoinTable(name = "order_product",
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id"))
-    private List<Product> orderedProducts;
+    private List<Product> products;
 
     @Column(nullable = false)
     private BigDecimal total;
 
     public List<Product> getProducts() {
-        return orderedProducts;
+        return products;
     }
 
     public Order setProducts(List<Product> products) {
-        this.orderedProducts = products;
+        this.products = products;
         return this;
     }
 
