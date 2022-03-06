@@ -22,11 +22,6 @@ public class DealServiceImpl implements DealService{
         this.productRepository = productRepository;
     }
 
-    @Override
-    public void addDeal(DealAddServiceModel dealAddServiceModel) {
-        createDeal(dealAddServiceModel.getName(),
-                defineProducts(dealAddServiceModel.getProducts()));
-    }
 
     @Override
     public List<Deal> getAllDeals() {
@@ -39,11 +34,6 @@ public class DealServiceImpl implements DealService{
                 .orElseThrow(() -> new ItemNotFoundException("Deal with name " + name + " not found!"));
     }
 
-//    @Override
-//    public Deal findDealById(Long id) {
-//        return dealRepository.findDealById(id)
-//                .orElseThrow(() -> new ItemNotFoundException("Deal not found!"));
-//    }
 
     @Override
     public void initializeDeals() {

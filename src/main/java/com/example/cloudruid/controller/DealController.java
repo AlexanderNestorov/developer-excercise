@@ -32,23 +32,4 @@ public class DealController {
         List<Deal> deals = this.dealService.getAllDeals();
         return ResponseEntity.ok(deals);
     }
-
-//    @PostMapping("/add")
-//    public ResponseEntity<?> addDeal(@Valid @RequestBody DealAddRequest dealAddRequest,
-//                                      BindingResult bindingResult) {
-//
-//        if(bindingResult.hasErrors()) {
-//            return ResponseEntity.badRequest().body(new MessageResponse("Invalid deal request data!"));
-//        }
-//        System.out.println(dealAddRequest.getProducts());
-//
-//        DealAddServiceModel dealAddServiceModel =
-//                modelMapper.map(dealAddRequest, DealAddServiceModel.class);
-//
-//
-//        dealService.addDeal(dealAddServiceModel);
-//
-//
-//        return ResponseEntity.ok(new MessageResponse("Deal added successfully!"));
-//    }
 }

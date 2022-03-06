@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -35,7 +34,10 @@ public class OrderServiceImpl implements OrderService {
         List<String> firstTarget = new ArrayList<>();
         String secondTarget = null;
 
-        if (orderAddServiceModel.getDiscounts().contains("3for2")) {
+        boolean hasFirst = orderAddServiceModel.getDiscounts().contains("3for2");
+        boolean hasSecond = orderAddServiceModel.getDiscounts().contains("1AndHalf");
+
+        if (hasFirst) {
             firstTarget  = this.dealRepository.findDealByName("3for2")
                     .orElseThrow(() -> new ItemNotFoundException("Deal with name 3for2 not found!"))
                     .getProducts()
@@ -43,7 +45,7 @@ public class OrderServiceImpl implements OrderService {
 
         }
 
-        if (orderAddServiceModel.getDiscounts().contains("1AndHalf")) {
+        if (hasSecond) {
             secondTarget = this.dealRepository.findDealByName("1AndHalf")
                     .orElseThrow(() -> new ItemNotFoundException("Deal with name 1AndHalf not found!"))
                     .getProducts().get(0).getName();
@@ -55,71 +57,70 @@ public class OrderServiceImpl implements OrderService {
         List<String> productsForSecondPromotion = new ArrayList<>();
 
         int occurrences = 0;
-        boolean firstApplied = false;
-        boolean secondApplied = false;
 
-        while (fruits.size() > 2 && !firstApplied && !secondApplied) {
+        while (fruits.size() > 0) {
+            System.out.println(fruits + " Start");
 
-            for (int i = 0; i < fruits.size(); i++) {
-                if (firstTarget.contains(fruits.get(i))) {
-                    if (occurrences == 3) {
-                        occurrences = 0;
-                        break;
-                    }
-                    productsForFirstPromotion.add(fruits.get(i));
-                    occurrences++;
-                    if (occurrences == 3) {
-                        fruits.removeAll(productsForFirstPromotion);
-                        firstApplied = true;
+            if (fruits.size() >= 3 && hasFirst) {
+                for (int i = 0; i < fruits.size(); i++) {
+                    if (firstTarget.contains(fruits.get(i))) {
+                        productsForFirstPromotion.add(fruits.get(i));
+                        occurrences++;
+                        if (occurrences == 3) {
+                            for (String product : productsForFirstPromotion) {
+                                fruits.remove(product);
+                            }
+
+                            System.out.println("3 for 2 applied!"  + productsForFirstPromotion);
+                            System.out.println(fruits);
+                            for (String product : productsForFirstPromotion) {
+                                 totalPrice = totalPrice.add(this.productRepository
+                                .findProductByName(product)
+                                .orElseThrow(
+                                        () -> new ItemNotFoundException("Product with name " + product + " not found!"))
+                                         .getPrice());
+                             }
+                            totalPrice = totalPrice.subtract(Collections.min(defineProducts(productsForFirstPromotion), Comparator.comparing(Product::getPrice)).getPrice());
+                            productsForFirstPromotion.clear();
+                            occurrences = 0;
+                            break;
+                        }
                     }
                 }
             }
+            if (fruits.size() >= 2 && hasSecond) {
+                if (Collections.frequency(fruits, secondTarget) >= 2) {
+                    productsForSecondPromotion.add(fruits.remove(fruits.indexOf(secondTarget)));
+                    productsForSecondPromotion.add(fruits.remove(fruits.indexOf(secondTarget)));
+                    System.out.println("1 and half applied!" + productsForSecondPromotion);
+                    System.out.println(fruits);
+                    totalPrice = totalPrice
+                        .add((defineProducts(productsForSecondPromotion).get(0).getPrice()).multiply(BigDecimal.valueOf(1.5)));
+                    productsForSecondPromotion.clear();
 
-            if (Collections.frequency(fruits, secondTarget) >= 2) {
-                productsForSecondPromotion.add(fruits.remove(fruits.indexOf(secondTarget)));
-                productsForSecondPromotion.add(fruits.remove(fruits.indexOf(secondTarget)));
-                secondApplied = true;
-            }
-
-            System.out.println(secondApplied);
-            System.out.println(firstApplied);
-
-        }
-        //Sum the first promotion
-        if (firstApplied) {
-            for (String product : productsForFirstPromotion) {
-                totalPrice = totalPrice.add(this.productRepository
-                        .findProductByName(product)
-                        .orElseThrow(
-                                () -> new ItemNotFoundException("Product with name " + product + " not found!")
-                        ).getPrice());
-            }
-            totalPrice = totalPrice.subtract(Collections.min(defineProducts(productsForFirstPromotion),
-                    Comparator.comparing(Product::getPrice)).getPrice());
-        }
-        //Sum the second promotion
-        if (secondApplied) {
-            totalPrice = totalPrice
-                    .add((defineProducts(productsForSecondPromotion).get(0).getPrice()).multiply(BigDecimal.valueOf(1.5)));
-        }
-
-        //Sum the rest of the products
-        for (String product : fruits) {
-            totalPrice = totalPrice.add(this.productRepository
+                } else {
+                    for (String product : fruits) {
+                        totalPrice = totalPrice.add(this.productRepository
+                                .findProductByName(product)
+                                .orElseThrow(
+                                        () -> new ItemNotFoundException("Product with name " + product + " not found!")
+                                ).getPrice());
+                    }
+                    fruits.clear();
+                }
+            } else {
+                for (String product : fruits) {
+                    totalPrice = totalPrice.add(this.productRepository
                     .findProductByName(product)
                     .orElseThrow(
                             () -> new ItemNotFoundException("Product with name " + product + " not found!")
                     ).getPrice());
+                }
+                fruits.clear();
+            }
+            System.out.println(fruits + " End");
         }
-        //Clear the till
-        fruits.clear();
-
         System.out.println(totalPrice);
-
-
-        System.out.println(productsForFirstPromotion);
-        System.out.println(productsForSecondPromotion);
-        System.out.println(fruits);
     }
 
     @Override
@@ -128,8 +129,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private List<Product> defineProducts(List<String> products) {
-        return products.stream().map(p -> this.productRepository.findProductByName(p)
-                .orElseThrow(() -> new ItemNotFoundException("Product with name " + p + " not found!")))
+        return products.stream().map(product -> this.productRepository.findProductByName(product)
+                .orElseThrow(() -> new ItemNotFoundException("Product with name " + product + " not found!")))
                 .collect(Collectors.toList());
     }
 }

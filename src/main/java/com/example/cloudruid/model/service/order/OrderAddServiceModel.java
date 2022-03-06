@@ -1,6 +1,5 @@
 package com.example.cloudruid.model.service.order;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public class OrderAddServiceModel {
