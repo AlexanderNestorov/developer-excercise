@@ -9,8 +9,10 @@ import com.example.cloudruid.repository.OrderRepository;
 import com.example.cloudruid.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -27,6 +29,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void addOrder(OrderAddServiceModel orderAddServiceModel) {
+
+        BigDecimal totalPrice = BigDecimal.valueOf(0);
+
         List<String> firstTarget = new ArrayList<>();
         String secondTarget = null;
 
@@ -59,13 +64,13 @@ public class OrderServiceImpl implements OrderService {
                 if (firstTarget.contains(fruits.get(i))) {
                     if (occurrences == 3) {
                         occurrences = 0;
-                        firstApplied = true;
                         break;
                     }
                     productsForFirstPromotion.add(fruits.get(i));
                     occurrences++;
                     if (occurrences == 3) {
                         fruits.removeAll(productsForFirstPromotion);
+                        firstApplied = true;
                     }
                 }
             }
@@ -76,7 +81,41 @@ public class OrderServiceImpl implements OrderService {
                 secondApplied = true;
             }
 
+            System.out.println(secondApplied);
+            System.out.println(firstApplied);
+
         }
+        //Sum the first promotion
+        if (firstApplied) {
+            for (String product : productsForFirstPromotion) {
+                totalPrice = totalPrice.add(this.productRepository
+                        .findProductByName(product)
+                        .orElseThrow(
+                                () -> new ItemNotFoundException("Product with name " + product + " not found!")
+                        ).getPrice());
+            }
+            totalPrice = totalPrice.subtract(Collections.min(defineProducts(productsForFirstPromotion),
+                    Comparator.comparing(Product::getPrice)).getPrice());
+        }
+        //Sum the second promotion
+        if (secondApplied) {
+            totalPrice = totalPrice
+                    .add((defineProducts(productsForSecondPromotion).get(0).getPrice()).multiply(BigDecimal.valueOf(1.5)));
+        }
+
+        //Sum the rest of the products
+        for (String product : fruits) {
+            totalPrice = totalPrice.add(this.productRepository
+                    .findProductByName(product)
+                    .orElseThrow(
+                            () -> new ItemNotFoundException("Product with name " + product + " not found!")
+                    ).getPrice());
+        }
+        //Clear the till
+        fruits.clear();
+
+        System.out.println(totalPrice);
+
 
         System.out.println(productsForFirstPromotion);
         System.out.println(productsForSecondPromotion);
@@ -86,5 +125,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Set<Order> getAllOrders() {
         return new LinkedHashSet<>(this.orderRepository.findAll());
+    }
+
+    private List<Product> defineProducts(List<String> products) {
+        return products.stream().map(p -> this.productRepository.findProductByName(p)
+                .orElseThrow(() -> new ItemNotFoundException("Product with name " + p + " not found!")))
+                .collect(Collectors.toList());
     }
 }
